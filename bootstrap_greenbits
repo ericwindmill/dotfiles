@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+
+# Use this script to setup a new laptop or machine
+
+reload() {
+  source ~/.bash_profile
+}
+
+log()
+{
+  current_time="`date "+%H:%M:%S"`";
+  echo -e "[$current_time] ---------- $1 ----------"
+}
+
+log "Install Xcode tools"
+xcode-select --install
+reload
+
+log "Install Homebrew"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+reload
+
+log "Install MySQL"
+brew install mysql@5.7
+touch ~/.bash_profile
+echo 'export PATH="/usr/local/opt/mysql@5.7/bin:$PATH"' >> ~/.bash_profile
+brew services start mysql@5.7
+
+log "Install Redis"
+brew install redis
+brew services start redis
+
+log "Install Ngrok"
+brew cask install ngrok
+
+log "Install Java"
+brew cask install adoptopenjdk8
+
+log "Install Ruby"
+brew install rbenv ruby-build
+rbenv init
+echo 'eval "$(rbenv init -)"' >> ~/.bash_profile
+rbenv install 2.2.8
+rbenv global 2.2.8
+
+log "Install Magic Wormhole"
+brew install magic-wormhole
+
+log "Install Node"
+brew install nodenv
+nodenv init
+echo 'eval "$(nodenv init -)"' >> ~/.bash_profile
+nodenv install 8.11.0
+nodenv install 8.11.2
+nodenv install 8.11.3
+nodenv global 8.11.0
+brew install yarn
+
+log "Install banjo"
+git clone git@github.com:greenbits/banjo ~/.banjo
+echo 'eval "$($HOME/.banjo/bin/banjo init -)"' >> ~/.bash_profile
+banjo init
+banjo setup
+brew install docker-compose
+banjo service up
+
+log "Install Flutter"
+FLUTTER_HOME="$HOME/flutter"
+echo 'export FLUTTER_HOME="$HOME/flutter"' >> ~/.bash_profile
+echo 'export PATH="$FLUTTER_HOME/bin:$FLUTTER_HOME/bin/cache/dart-sdk/bin:$HOME/.pub-cache/bin:$PATH"' >> ~/.bash_profile
+reload
+git clone --branch stable https://github.com/flutter/flutter.git ${FLUTTER_HOME}
+flutter precache
+flutter doctor --android-licenses
+flutter doctor
+
+log "Configure git"
+git config --global user.name 'ericwindmill'
+git config --global user.email 'ewindmill@greenbits.com'
+
+log "Setup directories"
+mkdir -p ~/logs/point-of-sale
+mkdir ~/e2e-recordings
+
+log "Setup herer-api dependencies"
+git clone git@github.com:greenbits/herer-api.git ~/code/herer-api
+pushd ~/code/herer-api
+rbenv install
+rbenv init 
+rbenv local $(cat .ruby-version)
+gem install bundler -v 1.17.3
+bundle config --global build.mysql2 --with-opt-dir="$(brew --prefix openssl)"
+bundle 
+bin/bootsrap
+docker/build
+popd
+
+log "Setup herer-api-dumptruck dependencies"
+git clone git@github.com:greenbits/herer-api-dumptruck.git ~/code/herer-api-dumptruck
+mkdir -p ~/code/herer-api-dumptruck/dump_files
+pushd ~/code/herer-api-dumptruck
+rbenv local $(cat .ruby-version)
+bundle 
+popd
+cp ~/code/herer-api-dumptruck/config/settings.yml ~/code/herer-api-dumptruck/config/settings.local.yml
+
+log "Setup point-of-sale"
+pushd ~/code/point-of-sale
+rbenv install
+rbenv init
+rbenv local $(cat .ruby-version) 
+gem install bundler 
+bundle 
+bin/bootstrap
+popd
+pushd ~/code/point-of-sale/herer-ios
+bundle exec fastlane match --readonly development --verbose --clone_branch_directly
+bundle exec pod install
+popd
+echo 'export ANDROID_HOME="$HOME/Library/Android/sdk"' >> ~/.bash_profile
+echo 'export PATH="$PATH:$ANDROID_HOME/platform-tools"' >> ~/.bash_profile
+echo 'export PATH="$PATH:$ANDROID_HOME/emulator"' >> ~/.bash_profile
+
+log "Setup crontab"
+echo 'timestamp() {' >> ~/.bash_profile
+echo '  echo $(date +"%Y_%m_%d_%I_%M_%p")' >> ~/.bash_profile
+echo '}' >> ~/.bash_profile
+
+log "Setup git completion and coloring"
+brew install bash-completion
+echo '[[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]] && . "$(brew --prefix)/etc/profile.d/bash_completion.sh"' >> ~/.bash_profile
+curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash
+curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -o ~/.git-prompt.sh
+echo "source ~/.git-completion.bash" >> ~/.bash_profile
+echo "source ~/.git-prompt.sh" >> ~/.bash_profile
+echo 'GIT_PS1_SHOWDIRTYSTATE=1' >> ~/.bash_profile
+echo 'export PS1="\[\033[32m\]\w\[\033[33m\]\$(__git_ps1)\[\033[00m\] $ "' >> ~/.bash_profile
+
+log "Setup aliases"
+echo 'alias goha="cd ~/code/herer-api"' >> ~/.bash_profile
+echo 'alias gohad="cd ~/code/herer-api-dumptruck"' >> ~/.bash_profile
+echo 'alias gopos="cd ~/code/point-of-sale"' >> ~/.bash_profile
+echo 'alias be="bundle exec"' >> ~/.bash_profile
+
+log "COMPLETED"

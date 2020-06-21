@@ -1,0 +1,5 @@
+log "Setup aliases"
+echo 'alias goha="cd ~/code/herer-api"' >> ~/.bash_profile
+echo 'alias gohad="cd ~/code/herer-api-dumptruck"' >> ~/.bash_profile
+echo 'alias gopos="cd ~/code/point-of-sale"' >> ~/.bash_profile
+echo 'alias be="bundle exec"' >> ~/.bash_profile
