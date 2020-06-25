@@ -14,6 +14,7 @@ log()
 
 log "Install Xcode tools"
 xcode-select --install
+sudo xcodebuild -license accept
 reload
 
 log "Install Homebrew"
@@ -34,6 +35,7 @@ log "Install Ngrok"
 brew cask install ngrok
 
 log "Install Java"
+brew tap AdoptOpenJDK/openjdk
 brew cask install adoptopenjdk8
 
 log "Install Ruby"
@@ -129,9 +131,9 @@ echo '}' >> ~/.bash_profile
 log "Setup git completion and coloring"
 brew install bash-completion
 echo '[[ -r "$(brew --prefix)/etc/profile.d/bash_completion.sh" ]] && . "$(brew --prefix)/etc/profile.d/bash_completion.sh"' >> ~/.bash_profile
-curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash -o ~/.git-completion.bash
-curl https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -o ~/.git-prompt.sh
-echo "source ~/.git-completion.bash" >> ~/.bash_profile
+curl -o git-completion.bash https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.bash
+curl -o _git https://raw.githubusercontent.com/git/git/master/contrib/completion/git-completion.zsh
+echo "source ~/.git-completion.zsh" >> ~/.bash_profile
 echo "source ~/.git-prompt.sh" >> ~/.bash_profile
 echo 'GIT_PS1_SHOWDIRTYSTATE=1' >> ~/.bash_profile
 echo 'export PS1="\[\033[32m\]\w\[\033[33m\]\$(__git_ps1)\[\033[00m\] $ "' >> ~/.bash_profile

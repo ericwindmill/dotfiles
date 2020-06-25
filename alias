@@ -1,5 +1,15 @@
-log "Setup aliases"
-echo 'alias goha="cd ~/code/herer-api"' >> ~/.bash_profile
-echo 'alias gohad="cd ~/code/herer-api-dumptruck"' >> ~/.bash_profile
-echo 'alias gopos="cd ~/code/point-of-sale"' >> ~/.bash_profile
-echo 'alias be="bundle exec"' >> ~/.bash_profile
+# ruby
+alias be="bundle exec"
+alias rblocal="rbenv local $(cat .ruby-version)"
+
+# dart
+alias pget="pub get || flutter pub get"
+
+# git 
+alias gaa="git add -A"
+alias gs="git status"
+alias gcm="git commit -m"
+
+# node 
+alias nodelocal="nodenv local $(cat .node-version)"
+
